@@ -1,25 +1,35 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 
-// Connection info stored in appsettings.json
-IConfiguration configuration = new ConfigurationBuilder()
-    .AddJsonFile("appsettings.json")
-    .Build();var builder = WebApplication.CreateBuilder(args);
+var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddCors(options =>
 {
     options.AddPolicy(name: "Open",
-        builder =>
+        policyBuilder =>
         {
-            builder
+            policyBuilder
                 .AllowAnyOrigin()
                 .AllowAnyMethod()
                 .AllowAnyHeader();
         });
 });
+
 // Register the DataContext service
-builder.Services.AddDbContext<DataContext>(options => options.UseSqlite(configuration["ConnectionStrings:DefaultSQLiteConnection"]));
+var connectionString = builder.Configuration.GetConnectionString("DefaultSQLiteConnection") ?? "Data Source=appdb.sqlite";
+var sqliteBuilder = new Microsoft.Data.Sqlite.SqliteConnectionStringBuilder(connectionString);
+if (!string.IsNullOrEmpty(sqliteBuilder.DataSource))
+{
+    var dir = Path.GetDirectoryName(sqliteBuilder.DataSource);
+    if (!string.IsNullOrEmpty(dir) && !Directory.Exists(dir))
+    {
+        Directory.CreateDirectory(dir);
+    }
+}
+
+builder.Services.AddDbContext<DataContext>(options =>
+    options.UseSqlite(connectionString));
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
@@ -36,6 +46,13 @@ builder.Services.AddSwaggerGen(c =>
 });
 
 var app = builder.Build();
+
+// Automatically apply any pending migrations to SQLite on startup
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<DataContext>();
+    db.Database.Migrate();
+}
 
 app.UseCors("Open");
 

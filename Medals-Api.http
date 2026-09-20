@@ -1,6 +1,24 @@
 @Medals_Api_HostAddress = http://localhost:5057
 
-GET {{Medals_Api_HostAddress}}/weatherforecast/
+### Get all countries
+GET {{Medals_Api_HostAddress}}/api/country
 Accept: application/json
 
-###
+### Get a specific country by id
+GET {{Medals_Api_HostAddress}}/api/country/1
+Accept: application/json
+
+### Add a new country
+POST {{Medals_Api_HostAddress}}/api/country
+Content-Type: application/json
+
+{
+  "name": "United States",
+  "gold": 40,
+  "silver": 44,
+  "bronze": 42
+}
+
+### Delete a country by id
+DELETE {{Medals_Api_HostAddress}}/api/country/1
+
