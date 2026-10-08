@@ -21,7 +21,7 @@ builder.Services.AddCors(options =>
               .AllowAnyHeader()
               .AllowAnyMethod()
               // Anonymous origins NOT allowed for web sockets
-              .WithOrigins("http://localhost:5173", "https://jgrissom.github.io")
+              .WithOrigins("http://localhost:5173", "https://jgrissom.github.io", "https://okitchener.github.io")
               .AllowCredentials();
         });
 });
